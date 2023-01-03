@@ -1,2 +1,2 @@
 # BankTransfer
-Bank Transfer Service with financial providers like Paystack and Flutterwave.
+Bank Transfer Service integration using public apis from providers like Paystack and Flutterwave.
