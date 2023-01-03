@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BankTransfer.Domain\BankTransfer.Domain.csproj" />
+    <ProjectReference Include="..\BankTransfer.Messaging\BankTransfer.Messaging.csproj" />
+  </ItemGroup>
+
+</Project>
