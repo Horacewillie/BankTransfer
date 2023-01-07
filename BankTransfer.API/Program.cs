@@ -1,3 +1,4 @@
+using Azure.Messaging.ServiceBus;
 using BankTransfer.Core.Factory;
 using BankTransfer.Core.Implementation;
 using BankTransfer.Core.Interface;
@@ -6,7 +7,9 @@ using BankTransfer.Domain.CustomMiddleware;
 using BankTransfer.Domain.Exceptions;
 using BankTransfer.Messaging;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +20,27 @@ var services = builder.Services;
 services.AddSingleton(p => configuration.GetSection(PaymentProviderOptions.Config_Key).Get<PaymentProviderOptions>());
 
 services.AddScoped(p => configuration.GetSection(AppSettings.Config_Key).Get<AppSettings>());
+
+services.AddSingleton(p => GetBusConfig());
+
+services.AddSingleton(typeof(Messenger<>));
+
+//services.AddSingleton<IMessenger, Messenger>();
+
+//services.AddSingleton((serviceProvider) =>
+//{
+//    ServiceBusConfig options = serviceProvider.GetService<ServiceBusConfig>()!;
+
+//    return new ServiceBusClient(options.BankTransferConnection);
+//});
+
+
+
+ServiceBusConfig GetBusConfig()
+{
+    var busConfig = configuration.GetSection(ServiceBusConfig.Config_Key).Get<ServiceBusConfig>();
+    return busConfig;
+}
 
 //services.AddDistributedMemoryCache();
 
