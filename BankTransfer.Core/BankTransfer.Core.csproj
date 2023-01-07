@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BankTransfer.Domain\BankTransfer.Domain.csproj" />
+    <ProjectReference Include="..\BankTransfer.Infastructure\BankTransfer.Infastructure.csproj" />
     <ProjectReference Include="..\BankTransfer.Messaging\BankTransfer.Messaging.csproj" />
   </ItemGroup>
 

@@ -7,6 +7,7 @@ using BankTransfer.Domain.Configuration;
 using BankTransfer.Domain.CustomMiddleware;
 using BankTransfer.Domain.Exceptions;
 using BankTransfer.Infastructure;
+using BankTransfer.Infastructure.Repository;
 using BankTransfer.Messaging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -73,6 +74,8 @@ services.AddTransient<GlobalExceptionMiddleware>();
 
 services.AddHttpClient<ApiClient>();
 
+services.AddScoped<ITransactionRepository, TransactionRepository>();
+
 await ConfigureBusServices();
 
 builder.Services.AddControllers()
@@ -119,9 +122,9 @@ async Task ConfigureBusServices()
     services.AddTransient<FlutterwaveProvider>()
         .AddScoped<IProvider, FlutterwaveProvider>(s => s.GetService<FlutterwaveProvider>()!);
 
-    //services.AddTransient<GlobalExceptionMiddleware>();
-
     services.AddHttpClient<ApiClient>();
+
+    services.AddScoped<ITransactionRepository, TransactionRepository>();
 
     var busConfig = GetBusConfig();
     AzureServiceBusListener.ServiceProvider = services.BuildServiceProvider();

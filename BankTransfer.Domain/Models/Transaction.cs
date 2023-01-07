@@ -8,6 +8,14 @@ namespace BankTransfer.Domain.Models
 {
     public class Transaction
     {
+        public Transaction(string? transactionReference, decimal amount, Status transferStatus, string? receipent)
+        {
+            TransactionReference = transactionReference;
+            Amount = amount;
+            TransferStatus = Status.Pending;
+            Receipent = receipent;
+        }
+
         public Guid Id { get; set; }
 
         public string? TransactionReference { get; set; }

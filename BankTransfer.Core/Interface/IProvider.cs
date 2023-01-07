@@ -17,5 +17,7 @@ namespace BankTransfer.Core.Interface
         Task<ApiResponse<TransferResponse>> InitiateBankTransfer(ClientConfig config, BankTransferRequest query);
 
         Task<ApiResponse<TransactionStatusResponse>> StatusOfTransaction(ClientConfig config, string transactionReference);
+
+        Task HandleBankTransfer(BankTransferMessage bankTransferMessage);
     }
 }

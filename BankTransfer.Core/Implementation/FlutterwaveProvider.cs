@@ -42,7 +42,7 @@ namespace BankTransfer.Core.Implementation
                 narration = query.Narration,
                 currency = query.CurrencyCode,
                 callback_url = query.CallbackUrl,
-                reference = Utils.GenerateTransactionRefernce()
+                reference = Utils.GenerateTransactionReference()
             };
             var response = await _apiClient.Post<ApiResponse<FlutterwaveTransferResponse>>(data, config?.TransferUrl!, config?.ProviderApiKey!, true, query.MaxRetryAttempt);
             if (response.Data is null)
@@ -79,6 +79,11 @@ namespace BankTransfer.Core.Implementation
                 throw new BadRequestException(response.Message!);
 
             return new ApiResponse<TransactionStatusResponse> { Data = MapToTransactionStatus(response), Status = response.Status, Message = response.Message };
+        }
+
+        public Task HandleBankTransfer(BankTransferMessage bankTransferMessage)
+        {
+            return Task.FromResult(bankTransferMessage);
         }
 
         private TransactionStatusResponse MapToTransactionStatus(ApiResponse<FlutterwaveTransferResponse> response)

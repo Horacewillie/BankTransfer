@@ -3,6 +3,7 @@ using BankTransfer.Domain.Configuration;
 using BankTransfer.Domain.Exceptions;
 using BankTransfer.Domain.Helpers;
 using BankTransfer.Domain.Models;
+using BankTransfer.Infastructure.Repository;
 using BankTransfer.Messaging;
 using System;
 using System.Collections.Generic;
@@ -15,10 +16,15 @@ namespace BankTransfer.Core.Implementation
     public class PaystackProvider : IProvider
     {
         private readonly ApiClient _apiClient;
+        private ITransactionRepository _transactionRepository;
+        private readonly Messenger<PayStackTransferMessage> _bankTransferMessenger;
 
-        public PaystackProvider(ApiClient client)
+        public PaystackProvider(ApiClient client, 
+            ITransactionRepository transactionRepository, Messenger<PayStackTransferMessage> bankTransferMessenger)
         {
             _apiClient = client;
+            _transactionRepository = transactionRepository;
+            _bankTransferMessenger = bankTransferMessenger;
         }
 
         public async Task<ApiResponse<List<BankInfo>>> GetBanks(ClientConfig config)
@@ -39,22 +45,45 @@ namespace BankTransfer.Core.Implementation
             var receipientCode = await GetRecipientCode(config, query);
             if (receipientCode.Data is null)
                 throw new BadRequestException(receipientCode.Message!);
+            var receipient = receipientCode.Data.Recipient_Code;
             //check balance before proceeding --TO DO
             //Persist transaction...
+            var transaction = new Transaction(Utils.GenerateTransactionReference(), query!.Amount!.Value, Status.Pending, receipient);
+
+            _transactionRepository.AddTransaction(transaction);
+
+            await _transactionRepository.SaveChanges();
             //Push to Queue and return response of message is processing
-
-            var data = new
+            //construct Queue Message
+            var transferMessage = new PayStackTransferMessage
             {
-                amount = query.Amount,
-                recipient = receipientCode.Data.Recipient_Code,
-                reference = Utils.GenerateTransactionRefernce(),
+                Amount = query.Amount.Value,
+                TransactionId = transaction.Id,
+                MaxRetry = query.MaxRetryAttempt,
             };
-            var response = await _apiClient.Post<ApiResponse<PaystackTransferResponse>>(data, config?.TransferUrl!, config?.ProviderApiKey!, true, query.MaxRetryAttempt);
+
+            await _bankTransferMessenger.Publish(transferMessage);
+
+            return new ApiResponse<TransferResponse> { Message = "Your transfer is processing" };
 
 
-            if (response.Data is null)
-                throw new BadRequestException(response.Message!);
-            return new ApiResponse<TransferResponse> { Data = MapToTransferResponse(response), Message = response.Message, Status = response.Status };
+            //var data = new
+            //{
+            //    amount = query.Amount,
+            //    recipient = receipientCode.Data.Recipient_Code,
+            //    reference = Utils.GenerateTransactionReference(),
+            //};
+            //var response = await _apiClient.Post<ApiResponse<PaystackTransferResponse>>(data, config?.TransferUrl!, config?.ProviderApiKey!, true, query.MaxRetryAttempt);
+
+
+            //if (response.Data is null)
+            //    throw new BadRequestException(response.Message!);
+            //return new ApiResponse<TransferResponse> { Data = MapToTransferResponse(response), Message = response.Message, Status = response.Status };
+        }
+
+        public Task HandleBankTransfer(BankTransferMessage bankTransferMessage)
+        {
+            return Task.FromResult(bankTransferMessage);
         }
 
         public async Task<ApiResponse<AccountInfo>> ValidateAccountNumber(ClientConfig config, ValidateAccountNumberQuery query)

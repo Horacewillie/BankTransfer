@@ -9,7 +9,7 @@ namespace BankTransfer.Domain.Helpers
 {
     public static class Utils
     {
-        public static string? GenerateTransactionRefernce()
+        public static string? GenerateTransactionReference()
         {
             Guid guid = Guid.NewGuid();
             // Convert the GUID to a string with the format "N"

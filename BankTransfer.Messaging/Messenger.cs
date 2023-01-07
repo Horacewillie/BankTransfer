@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -40,7 +41,10 @@ namespace BankTransfer.Messaging
                     {
                         var sender = _client.CreateSender("myqueue");
                         var data = Utils.ConvertToByte(message!);
-                        ServiceBusMessage serviceBusMessage = new(data);
+                        ServiceBusMessage serviceBusMessage = new(data)
+                        {
+                            Subject = message.Label
+                        };
                         await sender.SendMessageAsync(serviceBusMessage);
                     }
                 }
@@ -52,21 +56,7 @@ namespace BankTransfer.Messaging
                 }
             });
             return Task.CompletedTask;
-            //var sender = _client.CreateSender("bankTransfer");
-            //try
-            //{
-            //    var data = Utils.ConvertToByte(message!);
-            //    ServiceBusMessage serviceBusMessage = new(data);
-            //    //serviceBusMessage.ApplicationProperties["messageType"] = typeof(T).Name;
-                
-            //    await sender.SendMessageAsync(serviceBusMessage);
-            //}
-            //finally
-            //{
-                
-            //    await sender.DisposeAsync();
-            //    await _client.DisposeAsync();
-            //}
+            
         }
     }
 

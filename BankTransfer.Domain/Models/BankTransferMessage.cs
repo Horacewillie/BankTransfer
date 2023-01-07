@@ -12,9 +12,21 @@ namespace BankTransfer.Domain.Models
 
         public override string QueueName => "myqueue";
 
-        public override string Label => "upskilling";
+        public override string Label => "unknown";
 
         public Guid TransactionId { get; set; }
+
+        public int MaxRetry { get; set; }
+    }
+
+    public class PayStackTransferMessage : BankTransferMessage
+    {
+       public override string Label => "paystack";
+    }
+
+    public class FlutterwaveTransferMessage : BankTransferMessage
+    {
+        public override string Label => "flutterwave";
     }
 
 }

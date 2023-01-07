@@ -1,5 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
 using BankTransfer.Core.Implementation;
+using BankTransfer.Core.Interface;
 using BankTransfer.Domain.Helpers;
 using BankTransfer.Domain.Models;
 
@@ -13,9 +14,19 @@ namespace BankTransfer.API
         {
             try
             {
-                var bankTransferMessage = Utils.Parse<BankTransferMessage>(args.Message.Body.ToArray());
-                var providerManager = ServiceProvider!.GetService<ProviderManager>();
-                await providerManager!.HandleBankTransfer(bankTransferMessage);
+                if(args.Message.Subject == "paystack")
+                {
+                    var bankTransferMessage = Utils.Parse<PayStackTransferMessage>(args.Message.Body.ToArray());
+                    var providerManager = ServiceProvider!.GetService<IProvider>();
+                    await providerManager!.HandleBankTransfer(bankTransferMessage);
+                }
+                else
+                {
+                    var bankTransferMessage = Utils.Parse<FlutterwaveTransferMessage>(args.Message.Body.ToArray());
+                    var providerManager = ServiceProvider!.GetService<IProvider>();
+                    await providerManager!.HandleBankTransfer(bankTransferMessage);
+                }
+                
 
                 await args.CompleteMessageAsync(args.Message);
             }
