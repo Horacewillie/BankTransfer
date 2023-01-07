@@ -63,7 +63,10 @@ namespace BankTransfer.Core.Implementation
             //Persist transaction or push notification of transaction status to client.
         }
 
-
+        public Task HandleBankTransfer(BankTransferMessage bankTransferMessage)
+        {
+            return Task.FromResult(bankTransferMessage);
+        }
 
         private (ClientConfig configToUse, IProvider providerToUse) GetProviderToUse(string? provider)
         {

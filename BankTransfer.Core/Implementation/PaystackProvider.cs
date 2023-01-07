@@ -102,10 +102,6 @@ namespace BankTransfer.Core.Implementation
             return transferReceipient;
         }
 
-        public Task HandleBankTransfer(BankTransferMessage bankTransferMessage)
-        {
-            return Task.FromResult(bankTransferMessage);
-        }
 
         private static TransferResponse MapToTransferResponse(ApiResponse<PaystackTransferResponse> response)
         {

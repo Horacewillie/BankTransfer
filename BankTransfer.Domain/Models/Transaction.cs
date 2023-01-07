@@ -14,6 +14,15 @@ namespace BankTransfer.Domain.Models
 
         public decimal Amount { get; set; }
 
+        public Status TransferStatus { get; set; }
+
         public string? Receipent { get; set; }
+    }
+
+    public enum Status
+    {
+        Pending,
+        Success,
+        Failed
     }
 }
