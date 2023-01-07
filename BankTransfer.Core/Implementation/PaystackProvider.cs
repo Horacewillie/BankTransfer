@@ -66,16 +66,6 @@ namespace BankTransfer.Core.Implementation
 
             return new ApiResponse<TransferResponse> { Message = "Your transfer is processing, We will let you know when its completed." };
 
-
-            //var data = new
-            //{
-            //    amount = query.Amount,
-            //    recipient = receipientCode.Data.Recipient_Code,
-            //    reference = Utils.GenerateTransactionReference(),
-            //};
-            //var response = await _apiClient.Post<ApiResponse<PaystackTransferResponse>>(data, config?.TransferUrl!, config?.ProviderApiKey!, true, query.MaxRetryAttempt);
-
-
             //if (response.Data is null)
             //    throw new BadRequestException(response.Message!);
             //return new ApiResponse<TransferResponse> { Data = MapToTransferResponse(response), Message = response.Message, Status = response.Status };

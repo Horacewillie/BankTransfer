@@ -31,6 +31,7 @@ namespace BankTransfer.Messaging
         {
             Task.Run(async () =>
             {
+                var sender = _client.CreateSender("myqueue");
                 try
                 {
                     if(message is DefaultMessage defaultMessage)
@@ -39,7 +40,7 @@ namespace BankTransfer.Messaging
                     }
                     else
                     {
-                        var sender = _client.CreateSender("myqueue");
+                       
                         var data = Utils.ConvertToByte(message!);
                         ServiceBusMessage serviceBusMessage = new(data)
                         {
@@ -53,6 +54,12 @@ namespace BankTransfer.Messaging
                     Console.WriteLine("Messaging Failed!!!");
                     Console.WriteLine(JsonConvert.SerializeObject(message));
                     Console.WriteLine(ex.Message + "\n" + ex.StackTrace);
+                }
+                finally
+                {
+                    //Dispose since Di is not incharge of client and sender creation.
+                    await sender.DisposeAsync();
+                    await _client.DisposeAsync();
                 }
             });
             return Task.CompletedTask;
