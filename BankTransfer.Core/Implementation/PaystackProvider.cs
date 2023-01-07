@@ -102,7 +102,7 @@ namespace BankTransfer.Core.Implementation
             return transferReceipient;
         }
 
-        public async Task HandleBankTransfer(BankTransferMessage bankTransferMessage)
+        public Task HandleBankTransfer(BankTransferMessage bankTransferMessage)
         {
             return Task.FromResult(bankTransferMessage);
         }

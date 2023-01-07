@@ -1,12 +1,15 @@
 using Azure.Messaging.ServiceBus;
+using BankTransfer.API;
 using BankTransfer.Core.Factory;
 using BankTransfer.Core.Implementation;
 using BankTransfer.Core.Interface;
 using BankTransfer.Domain.Configuration;
 using BankTransfer.Domain.CustomMiddleware;
 using BankTransfer.Domain.Exceptions;
+using BankTransfer.Infastructure;
 using BankTransfer.Messaging;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -17,13 +20,26 @@ var configuration = builder.Configuration;
 var services = builder.Services;
 // Add services to the container.
 //services.Configure<IPaymentProviderConfig>(builder.Configuration.GetSection(nameof(PaymentProviderOptions.Config_Key)));
-services.AddSingleton(p => configuration.GetSection(PaymentProviderOptions.Config_Key).Get<PaymentProviderOptions>());
+services.AddSingleton(p => configuration.GetSection(PaymentProviderOptions.Config_Key)
+.Get<PaymentProviderOptions>());
 
-services.AddScoped(p => configuration.GetSection(AppSettings.Config_Key).Get<AppSettings>());
+services.AddScoped(p => configuration.GetSection(AppSettings.Config_Key)
+.Get<AppSettings>());
 
 services.AddSingleton(p => GetBusConfig());
 
 services.AddSingleton(typeof(Messenger<>));
+
+services.AddDbContext<BankTransferDbContext>(options =>
+{
+    options.UseSqlServer(GetDbConnection())
+    .EnableSensitiveDataLogging();
+});
+
+
+
+string GetDbConnection() => configuration.GetSection(AppSettings.Config_Key)
+    .Get<AppSettings>().DbConnectionString!;
 
 //services.AddSingleton<IMessenger, Messenger>();
 
@@ -34,11 +50,10 @@ services.AddSingleton(typeof(Messenger<>));
 //    return new ServiceBusClient(options.BankTransferConnection);
 //});
 
-
-
 ServiceBusConfig GetBusConfig()
 {
-    var busConfig = configuration.GetSection(ServiceBusConfig.Config_Key).Get<ServiceBusConfig>();
+    var busConfig = configuration.GetSection(ServiceBusConfig.Config_Key)
+        .Get<ServiceBusConfig>();
     return busConfig;
 }
 
@@ -58,6 +73,8 @@ services.AddTransient<GlobalExceptionMiddleware>();
 
 services.AddHttpClient<ApiClient>();
 
+await ConfigureBusServices();
+
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options =>
     {
@@ -72,6 +89,44 @@ IActionResult HandleModelStateError(ActionContext arg)
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+async Task ConfigureBusServices()
+{
+    ServiceCollection services = new();
+
+    services!.AddSingleton(p => configuration!.GetSection(PaymentProviderOptions.Config_Key).Get<PaymentProviderOptions>());
+
+    services!.AddScoped(p => configuration!.GetSection(AppSettings.Config_Key)
+    .Get<AppSettings>());
+
+    services!.AddSingleton(p => GetBusConfig());
+
+    services.AddSingleton(typeof(Messenger<>));
+
+    services.AddDbContext<BankTransferDbContext>(options =>
+    {
+        options.UseSqlServer(GetDbConnection())
+        .EnableSensitiveDataLogging();
+    }, ServiceLifetime.Transient);
+
+    services.AddTransient<IProviderFactory, ProviderFactory>();
+
+    services.AddTransient<ProviderManager>();
+
+    services.AddTransient<PaystackProvider>()
+        .AddScoped<IProvider, PaystackProvider>(s => s.GetService<PaystackProvider>()!);
+
+    services.AddTransient<FlutterwaveProvider>()
+        .AddScoped<IProvider, FlutterwaveProvider>(s => s.GetService<FlutterwaveProvider>()!);
+
+    //services.AddTransient<GlobalExceptionMiddleware>();
+
+    services.AddHttpClient<ApiClient>();
+
+    var busConfig = GetBusConfig();
+    AzureServiceBusListener.ServiceProvider = services.BuildServiceProvider();
+    await ServiceBusRegistry.RegisterListeners(busConfig);
+}
 
 var app = builder.Build();
 

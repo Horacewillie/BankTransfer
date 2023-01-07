@@ -34,11 +34,11 @@ namespace BankTransfer.Messaging
                 {
                     if(message is DefaultMessage defaultMessage)
                     {
-                        Console.WriteLine("Hey yooo");
+                        Console.WriteLine("Just Default"); //TODO ---Take this out
                     }
                     else
                     {
-                        var sender = _client.CreateSender("bankTransfer");
+                        var sender = _client.CreateSender("myqueue");
                         var data = Utils.ConvertToByte(message!);
                         ServiceBusMessage serviceBusMessage = new(data);
                         await sender.SendMessageAsync(serviceBusMessage);
@@ -70,15 +70,10 @@ namespace BankTransfer.Messaging
         }
     }
 
-    internal class DefaultMessage
+    public class DefaultMessage
     {
     }
 
-    public abstract class QueueMessage
-    {
-        public abstract string QueueName { get; }
-        public virtual string Label => "UpSkilling";
-    }
 
     //public interface IMessenger
     //{

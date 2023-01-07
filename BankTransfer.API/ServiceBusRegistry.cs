@@ -6,17 +6,16 @@ namespace BankTransfer.API
 {
     public static class ServiceBusRegistry
     {
-        
-        public static  async Task RegisterListeners(ServiceBusConfig busConfig)
+        public static async Task RegisterListeners(ServiceBusConfig busConfig)
         {
             var clientOptions = new ServiceBusClientOptions()
             {
                 TransportType = ServiceBusTransportType.AmqpWebSockets
             };
 
-            ServiceBusClient client = new ServiceBusClient("het");
+            ServiceBusClient client = new ServiceBusClient(busConfig.BankTransferConnection, clientOptions);
 
-            ServiceBusProcessor processor = client.CreateProcessor("<QUEUE-NAME>", new ServiceBusProcessorOptions());
+            ServiceBusProcessor processor = client.CreateProcessor("myqueue", new ServiceBusProcessorOptions());
 
             processor.ProcessMessageAsync += AzureServiceBusListener.MessageHandler;
 

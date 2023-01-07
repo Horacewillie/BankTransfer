@@ -11,5 +11,7 @@ namespace BankTransfer.Domain.Configuration
         public const string Config_Key = "AppSettings";
 
         public string? ApiKey { get; set; }
+
+        public string? DbConnectionString { get; set; }
     }
 }
