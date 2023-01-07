@@ -40,13 +40,14 @@ namespace BankTransfer.Core.Implementation
             if (receipientCode.Data is null)
                 throw new BadRequestException(receipientCode.Message!);
             //check balance before proceeding --TO DO
+            //Persist transaction...
+            //Push to Queue and return response of message is processing
+
             var data = new
             {
                 amount = query.Amount,
                 recipient = receipientCode.Data.Recipient_Code,
                 reference = Utils.GenerateTransactionRefernce(),
-
-                //callbackurl
             };
             var response = await _apiClient.Post<ApiResponse<PaystackTransferResponse>>(data, config?.TransferUrl!, config?.ProviderApiKey!, true, query.MaxRetryAttempt);
 
@@ -99,6 +100,11 @@ namespace BankTransfer.Core.Implementation
             var transferReceipient = await _apiClient.Post<ApiResponse<TransferRecepientInfo>>
                 (data, config?.GenerateReceipientUrl!, config?.ProviderApiKey!);
             return transferReceipient;
+        }
+
+        public async Task HandleBankTransfer(BankTransferMessage bankTransferMessage)
+        {
+            return Task.FromResult(bankTransferMessage);
         }
 
         private static TransferResponse MapToTransferResponse(ApiResponse<PaystackTransferResponse> response)
