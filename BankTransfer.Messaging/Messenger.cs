@@ -33,21 +33,13 @@ namespace BankTransfer.Messaging
             {
                 var sender = _client.CreateSender("myqueue");
                 try
-                {
-                    if(message is DefaultMessage defaultMessage)
+                {  
+                    var data = Utils.ConvertToByte(message!);
+                    ServiceBusMessage serviceBusMessage = new(data)
                     {
-                        Console.WriteLine("Just Default"); //TODO ---Take this out
-                    }
-                    else
-                    {
-                       
-                        var data = Utils.ConvertToByte(message!);
-                        ServiceBusMessage serviceBusMessage = new(data)
-                        {
-                            Subject = message.Label
-                        };
-                        await sender.SendMessageAsync(serviceBusMessage);
-                    }
+                        Subject = message.Label
+                    };
+                    await sender.SendMessageAsync(serviceBusMessage);
                 }
                 catch (Exception ex)
                 {
@@ -57,7 +49,7 @@ namespace BankTransfer.Messaging
                 }
                 finally
                 {
-                    //Dispose since Di is not incharge of client and sender creation.
+                    //Dispose since DI is not incharge of client and sender creation.
                     await sender.DisposeAsync();
                     await _client.DisposeAsync();
                 }

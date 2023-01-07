@@ -10,7 +10,7 @@ namespace BankTransfer.Domain.Models
     {
         public decimal Amount { get; set; }
 
-        public override string QueueName => "myqueue";
+        public override string QueueName => QueueConfigs.Transfer;
 
         public virtual string Label => "unknown";
 
@@ -25,12 +25,12 @@ namespace BankTransfer.Domain.Models
 
     public class PayStackTransferMessage : BankTransferMessage
     {
-       public override string Label => "paystack";
+       public override string Label => QueueConfigs.PayStackLabel;
     }
 
     public class FlutterwaveTransferMessage : BankTransferMessage
     {
-        public override string Label => "flutterwave";
+        public override string Label => QueueConfigs.FlutterwaveLabel;
     }
 
 }

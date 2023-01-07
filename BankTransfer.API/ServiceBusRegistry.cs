@@ -1,5 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
 using BankTransfer.Domain.Configuration;
+using BankTransfer.Domain.Models;
 using System.Diagnostics;
 
 namespace BankTransfer.API
@@ -13,9 +14,9 @@ namespace BankTransfer.API
                 TransportType = ServiceBusTransportType.AmqpWebSockets
             };
 
-            ServiceBusClient client = new ServiceBusClient(busConfig.BankTransferConnection, clientOptions);
+            ServiceBusClient client = new(busConfig.BankTransferConnection, clientOptions);
 
-            ServiceBusProcessor processor = client.CreateProcessor("myqueue", new ServiceBusProcessorOptions());
+            ServiceBusProcessor processor = client.CreateProcessor(QueueConfigs.Transfer, new ServiceBusProcessorOptions());
 
             processor.ProcessMessageAsync += AzureServiceBusListener.MessageHandler;
 

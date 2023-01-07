@@ -15,7 +15,7 @@ namespace BankTransfer.API
             //(IProvider)_serviceProvider.GetService(typeof(FlutterwaveProvider)),
             try
             {
-                if(args.Message.Subject == "paystack")
+                if(args.Message.Subject == QueueConfigs.PayStackLabel)
                 {
                     var bankTransferMessage = Utils.Parse<PayStackTransferMessage>(args.Message.Body.ToArray());
                     var providerManager = (IProvider)ServiceProvider!.GetService(typeof(PaystackProvider))!;

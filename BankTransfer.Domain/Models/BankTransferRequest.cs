@@ -10,7 +10,7 @@ namespace BankTransfer.Domain.Models
         public class BankTransferRequest : BankTransferBase
         {
             public string? Narration { get; set; }
-            public int MaxRetryAttempt { get; set; }
+            public int MaxRetryAttempt => 3;
             public string? CallbackUrl { get; set; }
             public string? Provider { get; set; }
         }

@@ -9,6 +9,7 @@ using BankTransfer.Domain.Exceptions;
 using BankTransfer.Infastructure;
 using BankTransfer.Infastructure.Repository;
 using BankTransfer.Messaging;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -127,11 +128,14 @@ async Task ConfigureBusServices()
     services.AddScoped<ITransactionRepository, TransactionRepository>();
 
     var busConfig = GetBusConfig();
+
     AzureServiceBusListener.ServiceProvider = services.BuildServiceProvider();
+
     await ServiceBusRegistry.RegisterListeners(busConfig);
 }
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
