@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace BankTransfer.Messaging
 {
-    public class Messenger<T> where T : QueueMessage, new() //IMessenger
+    public class Messenger<T> where T : BankTransferMessage, new() //IMessenger
     {
         private readonly ServiceBusClient _client;
         private readonly ServiceBusConfig _busConfig;

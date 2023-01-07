@@ -12,9 +12,13 @@ namespace BankTransfer.Domain.Models
 
         public override string QueueName => "myqueue";
 
-        public override string Label => "unknown";
+        public virtual string Label => "unknown";
 
         public Guid TransactionId { get; set; }
+
+        public string? TransferUrl { get; set; }
+
+        public string? ProviderApikey { get; set; }
 
         public int MaxRetry { get; set; }
     }

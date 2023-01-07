@@ -47,24 +47,24 @@ namespace BankTransfer.Core.Implementation
                 throw new BadRequestException(receipientCode.Message!);
             var receipient = receipientCode.Data.Recipient_Code;
             //check balance before proceeding --TO DO
-            //Persist transaction...
             var transaction = new Transaction(Utils.GenerateTransactionReference(), query!.Amount!.Value, Status.Pending, receipient);
 
             _transactionRepository.AddTransaction(transaction);
 
             await _transactionRepository.SaveChanges();
-            //Push to Queue and return response of message is processing
-            //construct Queue Message
+
             var transferMessage = new PayStackTransferMessage
             {
                 Amount = query.Amount.Value,
                 TransactionId = transaction.Id,
                 MaxRetry = query.MaxRetryAttempt,
+                ProviderApikey = config.ProviderApiKey,
+                TransferUrl = config.TransferUrl
             };
 
             await _bankTransferMessenger.Publish(transferMessage);
 
-            return new ApiResponse<TransferResponse> { Message = "Your transfer is processing" };
+            return new ApiResponse<TransferResponse> { Message = "Your transfer is processing, We will let you know when its completed." };
 
 
             //var data = new
@@ -81,9 +81,29 @@ namespace BankTransfer.Core.Implementation
             //return new ApiResponse<TransferResponse> { Data = MapToTransferResponse(response), Message = response.Message, Status = response.Status };
         }
 
-        public Task HandleBankTransfer(BankTransferMessage bankTransferMessage)
+        public async Task HandleBankTransfer(BankTransferMessage bankTransferMessage)
         {
-            return Task.FromResult(bankTransferMessage);
+            var transaction = await _transactionRepository.FindTransaction(bankTransferMessage.TransactionId);
+            if (transaction is null) 
+                throw new BadRequestException($"Transaction with {bankTransferMessage.TransactionId} not found!");
+
+            var data = new
+            {
+                amount = transaction.Amount,
+                recipient = transaction.Receipent,
+                reference = transaction.TransactionReference,
+            };
+
+            var response = await _apiClient.Post<ApiResponse<PaystackTransferResponse>>(data, bankTransferMessage?.TransferUrl!, bankTransferMessage?.ProviderApikey!, true, bankTransferMessage.MaxRetry);
+
+            if (response.Data is null)
+                throw new BadRequestException(response.Message!);
+            if(response.Status == "true")
+                transaction.TransferStatus = Status.Success;
+            else
+                transaction.TransferStatus = Status.Failed;
+            _transactionRepository.UpdateTransaction(transaction);
+
         }
 
         public async Task<ApiResponse<AccountInfo>> ValidateAccountNumber(ClientConfig config, ValidateAccountNumberQuery query)

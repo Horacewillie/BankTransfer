@@ -12,18 +12,19 @@ namespace BankTransfer.API
 
         public static async Task MessageHandler(ProcessMessageEventArgs args)
         {
+            //(IProvider)_serviceProvider.GetService(typeof(FlutterwaveProvider)),
             try
             {
                 if(args.Message.Subject == "paystack")
                 {
                     var bankTransferMessage = Utils.Parse<PayStackTransferMessage>(args.Message.Body.ToArray());
-                    var providerManager = ServiceProvider!.GetService<IProvider>();
+                    var providerManager = (IProvider)ServiceProvider!.GetService(typeof(PaystackProvider))!;
                     await providerManager!.HandleBankTransfer(bankTransferMessage);
                 }
                 else
                 {
                     var bankTransferMessage = Utils.Parse<FlutterwaveTransferMessage>(args.Message.Body.ToArray());
-                    var providerManager = ServiceProvider!.GetService<IProvider>();
+                    var providerManager = (IProvider)ServiceProvider!.GetService(typeof(FlutterwaveProvider))!;
                     await providerManager!.HandleBankTransfer(bankTransferMessage);
                 }
                 

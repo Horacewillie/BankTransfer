@@ -9,6 +9,5 @@ namespace BankTransfer.Domain.Models
     public abstract class QueueMessage
     {
         public abstract string QueueName { get; }
-        public virtual string Label { get; }
     }
 }

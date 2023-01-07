@@ -1,4 +1,5 @@
 ﻿using BankTransfer.Domain.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,12 @@ namespace BankTransfer.Infastructure.Repository
 
         public async Task<Transaction> FindTransaction(Guid transactionId)
         {
-            return await DbContext!.Transaction!.FindAsync(transactionId);
+            return await DbContext!.Transaction!.FindAsync(transactionId)!;
+        }
+
+        public void UpdateTransaction(Transaction transaction)
+        {
+            DbContext.Entry(transaction).State = EntityState.Modified;
         }
 
 

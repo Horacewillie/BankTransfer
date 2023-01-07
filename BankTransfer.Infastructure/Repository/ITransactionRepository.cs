@@ -11,6 +11,8 @@ namespace BankTransfer.Infastructure.Repository
     {
         void AddTransaction(Transaction transaction);
 
+        void UpdateTransaction(Transaction transaction);
+
         Task<Transaction> FindTransaction(Guid transactionId);
 
         Task<int> SaveChanges(CancellationToken cancellationToken = default, bool clearChangeTracker = false);
