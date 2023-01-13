@@ -1,9 +1,7 @@
 ﻿using BankTransfer.Core.Implementation;
-using BankTransfer.Core.SignalRService;
 using BankTransfer.Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 
 namespace BankTransfer.API.Controllers
 {
@@ -12,11 +10,9 @@ namespace BankTransfer.API.Controllers
     public class BankTransferServiceController : ControllerBase
     {
         private readonly ProviderManager _providerManager;
-        private readonly ISignalRService _signalRService;
-        public BankTransferServiceController(ProviderManager providerManager,ISignalRService signalRService)
+        public BankTransferServiceController(ProviderManager providerManager)
         {
             _providerManager = providerManager;
-            _signalRService = signalRService;
         }
 
         [HttpGet("/api/v1/core-banking/banks")]
@@ -57,18 +53,5 @@ namespace BankTransfer.API.Controllers
             await _providerManager.CallBackByFlutterWave(apiResponse);
             return Ok();
         }
-
-        [HttpPost("/api/v1/core-banking/transaction/send")]
-        //[Route("Send")]
-        public async Task<IActionResult> SignalRHubTransferResponse(SignalRRequest signalRRequest)
-        {
-            Console.WriteLine($"Request got here {JsonConvert.SerializeObject(signalRRequest)}");
-            var response = await _signalRService.SignalRHubTransfer(signalRRequest);
-
-            return Ok(response);
-
-        }
-
-
     }
 }

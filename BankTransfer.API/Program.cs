@@ -3,14 +3,12 @@ using BankTransfer.API;
 using BankTransfer.Core.Factory;
 using BankTransfer.Core.Implementation;
 using BankTransfer.Core.Interface;
-using BankTransfer.Core.SignalRService;
 using BankTransfer.Domain.Configuration;
 using BankTransfer.Domain.CustomMiddleware;
 using BankTransfer.Domain.Exceptions;
 using BankTransfer.Infastructure;
 using BankTransfer.Infastructure.Repository;
 using BankTransfer.Messaging;
-using BankTransfer.Messaging.ClientTransferNotifier;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -40,7 +38,6 @@ services.AddDbContext<BankTransferDbContext>(options =>
     .EnableSensitiveDataLogging();
 });
 
-services.AddScoped<ClientNotifier>();
 string GetDbConnection() => configuration.GetSection(AppSettings.Config_Key)
     .Get<AppSettings>().DbConnectionString!;
 
@@ -59,8 +56,6 @@ ServiceBusConfig GetBusConfig()
         .Get<ServiceBusConfig>();
     return busConfig;
 }
-
-services.AddScoped<ISignalRService, SignalRService>();
 
 services.AddScoped<IProviderFactory, ProviderFactory>();
 
@@ -114,7 +109,6 @@ async Task ConfigureBusServices()
         .EnableSensitiveDataLogging();
     }, ServiceLifetime.Transient);
 
-    services.AddScoped<ClientNotifier>();
 
     services.AddSignalR();
 

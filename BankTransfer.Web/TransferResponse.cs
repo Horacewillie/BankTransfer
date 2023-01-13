@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BankTransfer.Domain.Models
+﻿namespace BankTransfer.Web
 {
-    public class BankTransferBase
+    public class TransferResponse
     {
+        public DateTime TransactionDateTime { get; set; }
+        public string? ResponseMessage { get; set; }
+        public int ResponseCode { get; set; }
+        public string? SessionId { get; set; }
+        public string? Status { get; set; }
         public decimal? Amount { get; set; }
         public string? BeneficiaryAccountNumber { get; set; }
         public string? BeneficiaryAccountName { get; set; }

@@ -29,7 +29,7 @@ namespace BankTransfer.Domain.Configuration
         public string? Name { get; set; }
         public string? ProviderApiKey { get; set; }
         public string? GenerateReceipientUrl { get; set; }
-        public string? Currency { get; set; }
+        public string Currency { get; set; }
 
         public string? GetTransactionStatusUrl { get; set; }
         public string? TransferUrl { get; set; }

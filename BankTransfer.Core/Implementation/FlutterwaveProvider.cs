@@ -40,7 +40,7 @@ namespace BankTransfer.Core.Implementation
                 account_number = query.BeneficiaryAccountNumber,
                 amount = query.Amount,
                 narration = query.Narration,
-                currency = query.CurrencyCode,
+                currency = query.CurrencyCode ?? config.Currency,
                 callback_url = query.CallbackUrl,
                 reference = Utils.GenerateTransactionReference()
             };
@@ -86,7 +86,7 @@ namespace BankTransfer.Core.Implementation
             return Task.FromResult(bankTransferMessage);
         }
 
-        private TransactionStatusResponse MapToTransactionStatus(ApiResponse<FlutterwaveTransferResponse> response)
+        private static TransactionStatusResponse MapToTransactionStatus(ApiResponse<FlutterwaveTransferResponse> response)
         {
             var transferResponse = response?.Data;
 

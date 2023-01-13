@@ -1,0 +1,43 @@
+﻿@page
+<div class="container">
+    <div class="row">&nbsp;</div>
+    <div class="row">
+        <div class="col-2">BeneficiaryAccountNumber</div>
+        <div class="col-4"><input type="text" id="beneficiaryAccountNumber" /></div>
+    </div>
+    <div class="row">
+        <div class="col-2">BeneficiaryBankCode</div>
+        <div class="col-4"><input type="text" id="beneficiaryBankCodeInput" /></div>
+    </div>
+    <div class="row">
+        <div class="col-2">Amount</div>
+        <div class="col-4"><input type="text" id="amountInput" /></div>
+    </div>
+    <div class="row">
+        <div class="col-2">Payment Provider</div>
+        <div class="col-4"><input type="text" id="providerInput" /></div>
+    </div>
+    <div class="row">&nbsp;</div>
+    <div class="row">
+        <div class="col-6">
+            <input type="button" id="makeRequest" value="Make Request" />
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <hr />
+    </div>
+</div>
+<p>Api Response: <span id="initialResponse"></span></p>
+
+
+
+<p>Asynchronous Response will be shown in textArea: <span id="asyncResponse"></span></p>
+<div class="row">
+    <div class="col-6">
+        <textArea id="messages"></textArea>
+    </div>
+</div>
+<script src="~/js/signalr/dist/browser/signalr.js"></script>
+<script src="~/js/banktransfer.js"></script>

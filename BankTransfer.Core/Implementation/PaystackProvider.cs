@@ -5,6 +5,7 @@ using BankTransfer.Domain.Helpers;
 using BankTransfer.Domain.Models;
 using BankTransfer.Infastructure.Repository;
 using BankTransfer.Messaging;
+using BankTransfer.Messaging.SignalRClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -93,6 +94,10 @@ namespace BankTransfer.Core.Implementation
             else
                 transaction.TransferStatus = Status.Failed;
             _transactionRepository.UpdateTransaction(transaction);
+            //call signalr- hub and pass the response, pass it 
+            var payStackResponse = MapToTransferResponse(response);
+
+            await SignalRSender.SendDetailsThroughSignalR(payStackResponse);
 
         }
 

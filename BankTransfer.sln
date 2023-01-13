@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BankTransfer.Domain", "Bank
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BankTransfer.Messaging", "BankTransfer.Messaging\BankTransfer.Messaging.csproj", "{984B4590-5258-4ACD-966B-11651BD14F95}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankTransfer.Infastructure", "BankTransfer.Infastructure\BankTransfer.Infastructure.csproj", "{3A43B6EE-1C73-49CF-9EC4-767F35824ED2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BankTransfer.Infastructure", "BankTransfer.Infastructure\BankTransfer.Infastructure.csproj", "{3A43B6EE-1C73-49CF-9EC4-767F35824ED2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankTransfer.Web", "BankTransfer.Web\BankTransfer.Web.csproj", "{11504DCC-D1D3-452E-AAFE-BB7E9CFB3739}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{3A43B6EE-1C73-49CF-9EC4-767F35824ED2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A43B6EE-1C73-49CF-9EC4-767F35824ED2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A43B6EE-1C73-49CF-9EC4-767F35824ED2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11504DCC-D1D3-452E-AAFE-BB7E9CFB3739}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11504DCC-D1D3-452E-AAFE-BB7E9CFB3739}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11504DCC-D1D3-452E-AAFE-BB7E9CFB3739}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11504DCC-D1D3-452E-AAFE-BB7E9CFB3739}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
