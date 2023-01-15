@@ -38,17 +38,18 @@ services.AddDbContext<BankTransferDbContext>(options =>
     .EnableSensitiveDataLogging();
 });
 
+services.AddCors(options => {
+    options.AddPolicy(
+        name: "Horace",
+        builder =>
+        {
+            builder.WithOrigins("https://localhost:7015");
+        });
+});
+
 string GetDbConnection() => configuration.GetSection(AppSettings.Config_Key)
     .Get<AppSettings>().DbConnectionString!;
 
-//services.AddSingleton<IMessenger, Messenger>();
-
-//services.AddSingleton((serviceProvider) =>
-//{
-//    ServiceBusConfig options = serviceProvider.GetService<ServiceBusConfig>()!;
-
-//    return new ServiceBusClient(options.BankTransferConnection);
-//});
 
 ServiceBusConfig GetBusConfig()
 {
@@ -148,6 +149,10 @@ app.UseMiddleware<ApiKeyAuthenticationMiddleware>();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
+
+app.UseCors("Horace");
 
 app.UseAuthorization();
 

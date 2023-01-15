@@ -13,6 +13,7 @@ namespace BankTransfer.Messaging.SignalRClient
     {
         public static async Task SendDetailsThroughSignalR(TransferResponse detailsToBeSent)
         {
+            Console.WriteLine(detailsToBeSent);
             Console.WriteLine("Hello World!");
 
             HubConnection connection = new HubConnectionBuilder()

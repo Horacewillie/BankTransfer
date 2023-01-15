@@ -3,7 +3,9 @@ using BankTransfer.Domain.Configuration;
 using BankTransfer.Domain.Exceptions;
 using BankTransfer.Domain.Helpers;
 using BankTransfer.Domain.Models;
+using BankTransfer.Infastructure.Repository;
 using BankTransfer.Messaging;
+using BankTransfer.Messaging.SignalRClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,11 +17,16 @@ namespace BankTransfer.Core.Implementation
     public class FlutterwaveProvider : IProvider
     {
         private readonly ApiClient _apiClient;
-        public FlutterwaveProvider(ApiClient client)
+        private ITransactionRepository _transactionRepository;
+        private readonly Messenger<FlutterwaveTransferMessage> _bankTransferMessenger;
+        public FlutterwaveProvider(ApiClient client,
+            ITransactionRepository transactionRepository, Messenger<FlutterwaveTransferMessage> bankTransferMessenger)
         {
             _apiClient = client;
+            _transactionRepository = transactionRepository;
+            _bankTransferMessenger = bankTransferMessenger;
         }
-        public async Task<ApiResponse<List<BankInfo>>> GetBanks(ClientConfig config)
+        public async Task<List<BankInfo>> GetBanks(ClientConfig config)
         {
             //Make request to the designated service provider
             var response = await _apiClient.Get<ApiResponse<List<BankDetail>>>(config?.GetAllBanksUrl!, config?.ProviderApiKey!);
@@ -29,34 +36,42 @@ namespace BankTransfer.Core.Implementation
                 .Select(s => new BankInfo { Code = s.Code, BankName = s.Name, LongName = s.Longcode })
                 .ToList();
 
-            return new ApiResponse<List<BankInfo>>() { Data = result, Message = response.Message, Status = response.Status };
+            return result;
+            //return new List<BankInfo>() { Data = result, Message = response.Message, Status = response.Status };
         }
 
-        public async Task<ApiResponse<TransferResponse>> InitiateBankTransfer(ClientConfig config, BankTransferRequest query)
+        public async Task<object> InitiateBankTransfer(ClientConfig config, BankTransferRequest query)
         {
-            var data = new
+
+            var transaction = new Transaction(Utils.GenerateTransactionReference(), query.Amount, Status.Pending);
+
+            _transactionRepository.AddTransaction(transaction);
+
+            await _transactionRepository.SaveChanges();
+
+            var transferMessage = new FlutterwaveTransferMessage
             {
-                account_bank = query.BeneficiaryBankCode,
-                account_number = query.BeneficiaryAccountNumber,
-                amount = query.Amount,
-                narration = query.Narration,
-                currency = query.CurrencyCode ?? config.Currency,
-                callback_url = query.CallbackUrl,
-                reference = Utils.GenerateTransactionReference()
+                Amount = query.Amount!.Value,
+                TransactionId = transaction.Id,
+                MaxRetry = query.MaxRetryAttempt,
+                ProviderApikey = config.ProviderApiKey,
+                TransferUrl = config.TransferUrl
             };
-            var response = await _apiClient.Post<ApiResponse<FlutterwaveTransferResponse>>(data, config?.TransferUrl!, config?.ProviderApiKey!, true, query.MaxRetryAttempt);
-            if (response.Data is null)
-                throw new BadRequestException(response?.Message!);
-            return new ApiResponse<TransferResponse> { Data = MapToTransferResponse(response), Message = response.Message, Status = response.Status };
+
+            await _bankTransferMessenger.Publish(transferMessage);
+
+            return new { Message = "Your transfer is processing, We will let you know when its completed." };
+
+            //return new ApiResponse<TransferResponse> { Message = "Your transfer is processing, We will let you know when its completed." };
         }
 
-        public async Task<ApiResponse<AccountInfo>> ValidateAccountNumber(ClientConfig config, ValidateAccountNumberQuery query)
+        public async Task<AccountInfo> ValidateAccountNumber(ClientConfig config, ValidateAccountNumberQuery query)
         {
             var data = new { account_number = query.AccountNumber, account_bank = query.Code };
             //Make request
             var response = await _apiClient.Post<ApiResponse<AccountDetail>>(data, config?.ValidateAccountNumberUrl!, config?.ProviderApiKey!);
             var listOfBanks = await GetBanks(config!);
-            var bank = listOfBanks!.Data!.Where(x => x.Code == query.Code)
+            var bank = listOfBanks!.Where(x => x.Code == query.Code)
                 .SingleOrDefault();
             if (response.Data is null)
                 throw new BadRequestException(response.Message!);
@@ -68,28 +83,17 @@ namespace BankTransfer.Core.Implementation
                 BankCode = bank!.Code,
                 BankName = bank.BankName,
             };
-            return new ApiResponse<AccountInfo> { Data = result, Message = response!.Message, Status = response.Status };
+            return result;
+            //return new ApiResponse<AccountInfo> { Data = result, Message = response!.Message, Status = response.Status };
         }
 
-        public async Task<ApiResponse<TransactionStatusResponse>> StatusOfTransaction(ClientConfig config, string transactionReference)
+        public async Task<TransactionStatusResponse> StatusOfTransaction(ClientConfig config, string transactionReference)
         {
             var id = transactionReference;
             var response = await _apiClient.Get<ApiResponse<FlutterwaveTransferResponse>>($"{config.GetTransactionStatusUrl}/{id}", config!.ProviderApiKey!);
             if (response.Data is null)
                 throw new BadRequestException(response.Message!);
-
-            return new ApiResponse<TransactionStatusResponse> { Data = MapToTransactionStatus(response), Status = response.Status, Message = response.Message };
-        }
-
-        public Task HandleBankTransfer(BankTransferMessage bankTransferMessage)
-        {
-            return Task.FromResult(bankTransferMessage);
-        }
-
-        private static TransactionStatusResponse MapToTransactionStatus(ApiResponse<FlutterwaveTransferResponse> response)
-        {
             var transferResponse = response?.Data;
-
             return new TransactionStatusResponse
             {
                 Amount = transferResponse?.Amount,
@@ -103,6 +107,41 @@ namespace BankTransfer.Core.Implementation
                 Status = transferResponse?.Status,
                 SessionId = string.Empty
             };
+            //{ Data = MapToTransactionStatus(response), Status = response.Status, Message = response.Message };
+        }
+
+        public async Task HandleBankTransfer(BankTransferMessage bankTransferMessage)
+        {
+            var transaction = await _transactionRepository.FindTransaction(bankTransferMessage.TransactionId);
+            if (transaction is null)
+                throw new BadRequestException($"Transaction with {bankTransferMessage.TransactionId} not found!");
+
+
+            var data = new
+            {
+                account_bank = bankTransferMessage.BeneficiaryBankCode,
+                account_number = bankTransferMessage.BeneficiaryAccountNumber,
+                amount = transaction.Amount,
+                narration = "",
+                currency = "NGN",
+                callback_url = "",
+                reference = Utils.GenerateTransactionReference()
+            };
+
+            var response = await _apiClient.Post<ApiResponse<FlutterwaveTransferResponse>>(data, bankTransferMessage?.TransferUrl!, bankTransferMessage?.ProviderApikey!, true, bankTransferMessage!.MaxRetry);
+
+            if (response.Data is null)
+                throw new BadRequestException(response.Message!);
+            if (response.Status == "true")
+                transaction.TransferStatus = Status.Success;
+            else
+                transaction.TransferStatus = Status.Failed;
+            _transactionRepository.UpdateTransaction(transaction);
+            //call signalr- hub and pass the response, pass it 
+            var flutterwaveResponse = MapToTransferResponse(response);
+
+            await SignalRSender.SendDetailsThroughSignalR(flutterwaveResponse);
+
         }
 
         private static TransferResponse MapToTransferResponse(ApiResponse<FlutterwaveTransferResponse> response)

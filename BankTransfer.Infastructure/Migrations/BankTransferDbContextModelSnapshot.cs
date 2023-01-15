@@ -34,7 +34,7 @@ namespace BankTransfer.Infastructure.Migrations
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Receipent")
+                    b.Property<string>("Recepient")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

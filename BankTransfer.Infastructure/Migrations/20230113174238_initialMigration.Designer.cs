@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BankTransfer.Infastructure.Migrations
 {
     [DbContext(typeof(BankTransferDbContext))]
-    [Migration("20230107163143_AddedStatusToTransaction")]
-    partial class AddedStatusToTransaction
+    [Migration("20230113174238_initialMigration")]
+    partial class initialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -34,7 +34,10 @@ namespace BankTransfer.Infastructure.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("Receipent")
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Recepient")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

@@ -16,7 +16,7 @@ namespace BankTransfer.Infastructure
             builder.HasKey(x => x.Id);
             builder.Property(x => x.TransactionReference).IsRequired();
             builder.Property(x => x.Amount).IsRequired();
-            builder.Property(x => x.Receipent).IsRequired();
+            builder.Property(x => x.Recepient).IsRequired();
 
         }
     }

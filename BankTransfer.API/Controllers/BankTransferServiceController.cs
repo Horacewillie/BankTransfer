@@ -1,5 +1,6 @@
 ﻿using BankTransfer.Core.Implementation;
 using BankTransfer.Domain.Models;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +17,7 @@ namespace BankTransfer.API.Controllers
         }
 
         [HttpGet("/api/v1/core-banking/banks")]
-        [Produces(typeof(ApiResponse<List<BankInfo>>))]
+        [Produces(typeof(List<BankInfo>))]
         public async Task<IActionResult> GetBanks([FromQuery] ProviderQuery providerQuery)
         {
             var listOfBanks = await _providerManager.GetAllBanks(providerQuery.Provider);
@@ -24,7 +25,7 @@ namespace BankTransfer.API.Controllers
         }
 
         [HttpPost("/api/v1/core-banking/validateBankAccount")]
-        [Produces(typeof(ApiResponse<AccountInfo>))]
+        [Produces(typeof(AccountInfo))]
         public async Task<IActionResult> ValidateAccountNumber([FromQuery] ValidateAccountNumberQuery validateAccountNumberQuery)
         {
             var accountInfo = await _providerManager.ValidateAccount(validateAccountNumberQuery);
@@ -32,7 +33,7 @@ namespace BankTransfer.API.Controllers
         }
 
         [HttpPost("/api/v1/core-banking/bankTransfer")]
-        [Produces(typeof(ApiResponse<TransferResponse>))]
+        //[Produces(typeof(TransferResponse>))]
         public async Task<IActionResult> BankTransfer([FromBody] BankTransferRequest bankTransferRequest)
         {
             var transferResponse = await _providerManager.BankTransfer(bankTransferRequest);
@@ -40,7 +41,7 @@ namespace BankTransfer.API.Controllers
         }
 
         [HttpGet("/api/v1/core-banking/transaction/{transactionReference}")]
-        [Produces(typeof(ApiResponse<TransferResponse>))]
+        //[Produces(typeof(TransferResponse))]
         public async Task<IActionResult> GetTransactionStatus(string transactionReference, [FromQuery] string? provider)
         {
             var transferResponse = await _providerManager.GetTransactionStatus(transactionReference, provider);

@@ -28,7 +28,7 @@ namespace BankTransfer.Core.Implementation
             _bankTransferMessenger = bankTransferMessenger;
         }
 
-        public async Task<ApiResponse<List<BankInfo>>> GetBanks(ClientConfig config)
+        public async Task<List<BankInfo>> GetBanks(ClientConfig config)
         {
             //Make request to the designated service provider
             var response = await _apiClient.Get<ApiResponse<List<BankDetail>>>(config?.GetAllBanksUrl!, config?.ProviderApiKey!);
@@ -38,10 +38,10 @@ namespace BankTransfer.Core.Implementation
                 .Select(s => new BankInfo { Code = s.Code, BankName = s.Name, LongName = s.Longcode })
                 .ToList();
 
-            return new ApiResponse<List<BankInfo>>() { Data = result, Message = response.Message, Status = response.Status };
+            return result;
         }
 
-        public async Task<ApiResponse<TransferResponse>> InitiateBankTransfer(ClientConfig config, BankTransferRequest query)
+        public async Task<object> InitiateBankTransfer(ClientConfig config, BankTransferRequest query)
         {
             var receipientCode = await GetRecipientCode(config, query);
             if (receipientCode.Data is null)
@@ -65,7 +65,7 @@ namespace BankTransfer.Core.Implementation
 
             await _bankTransferMessenger.Publish(transferMessage);
 
-            return new ApiResponse<TransferResponse> { Message = "Your transfer is processing, We will let you know when its completed." };
+            return new { Message = "Your transfer is processing, We will let you know when its completed." };
 
             //if (response.Data is null)
             //    throw new BadRequestException(response.Message!);
@@ -81,11 +81,11 @@ namespace BankTransfer.Core.Implementation
             var data = new
             {
                 amount = transaction.Amount,
-                recipient = transaction.Receipent,
+                recipient = transaction.Recepient,
                 reference = transaction.TransactionReference,
             };
 
-            var response = await _apiClient.Post<ApiResponse<PaystackTransferResponse>>(data, bankTransferMessage?.TransferUrl!, bankTransferMessage?.ProviderApikey!, true, bankTransferMessage.MaxRetry);
+            var response = await _apiClient.Post<ApiResponse<PaystackTransferResponse>>(data, bankTransferMessage?.TransferUrl!, bankTransferMessage?.ProviderApikey!, true, bankTransferMessage!.MaxRetry);
 
             if (response.Data is null)
                 throw new BadRequestException(response.Message!);
@@ -101,7 +101,7 @@ namespace BankTransfer.Core.Implementation
 
         }
 
-        public async Task<ApiResponse<AccountInfo>> ValidateAccountNumber(ClientConfig config, ValidateAccountNumberQuery query)
+        public async Task<AccountInfo> ValidateAccountNumber(ClientConfig config, ValidateAccountNumberQuery query)
         {
             var queryParameter = new Dictionary<string, string>
             {
@@ -112,7 +112,7 @@ namespace BankTransfer.Core.Implementation
             var response = await _apiClient.Get<ApiResponse<AccountDetail>>(config?.ValidateAccountNumberUrl!, config?.ProviderApiKey!, queryParameter);
             //Could Cache the getbanks api response, to prevent making call again --TO DO
             var listOfBanks = await GetBanks(config!);
-            var bank = listOfBanks!.Data!.Where(x => x.Code == query.Code)
+            var bank = listOfBanks!.Where(x => x.Code == query.Code)
                 .SingleOrDefault();
             if (response.Data is null)
                 throw new BadRequestException(response.Message!);
@@ -125,44 +125,16 @@ namespace BankTransfer.Core.Implementation
                 BankCode = bank?.Code
 
             };
-            return new ApiResponse<AccountInfo> { Data = result, Message = response!.Message, Status = response.Status };
+            return result;
+            //return new ApiResponse<AccountInfo> { Data = result, Message = response!.Message, Status = response.Status };
         }
 
-        public async Task<ApiResponse<TransactionStatusResponse>> StatusOfTransaction(ClientConfig config, string transactionReference)
+        public async Task<TransactionStatusResponse> StatusOfTransaction(ClientConfig config, string transactionReference)
         {
             var response = await _apiClient.Get<ApiResponse<PayStackVerificationResponse>>($"{config.GetTransactionStatusUrl}{transactionReference}", config!.ProviderApiKey!);
             if (response.Data is null)
                 throw new BadRequestException(response.Message!);
 
-            return new ApiResponse<TransactionStatusResponse> { Data = MapToTransactionStatus(response), Status = response.Status, Message = response.Message };
-        }
-
-        private async Task<ApiResponse<TransferRecepientInfo>> GetRecipientCode(ClientConfig config, BankTransferRequest query)
-        {
-            var data = new { bank_code = query.BeneficiaryBankCode, account_number = query.BeneficiaryAccountNumber };
-
-            var transferReceipient = await _apiClient.Post<ApiResponse<TransferRecepientInfo>>
-                (data, config?.GenerateReceipientUrl!, config?.ProviderApiKey!);
-            return transferReceipient;
-        }
-
-
-        private static TransferResponse MapToTransferResponse(ApiResponse<PaystackTransferResponse> response)
-        {
-            var transferResponse = response?.Data;
-            return new TransferResponse
-            {
-                Amount = transferResponse?.amount,
-                TransactionReference = transferResponse?.reference,
-                Status = transferResponse?.status,
-                CurrencyCode = transferResponse?.currency,
-                ResponseMessage = response!.Message,
-                TransactionDateTime = transferResponse!.createdAt,
-            };
-        }
-
-        private static TransactionStatusResponse MapToTransactionStatus(ApiResponse<PayStackVerificationResponse> response)
-        {
             var transferResponse = response?.Data;
 
             return new TransactionStatusResponse
@@ -177,6 +149,31 @@ namespace BankTransfer.Core.Implementation
                 ResponseMessage = response?.Message,
                 Status = transferResponse?.status,
                 SessionId = string.Empty
+            };
+
+            //return new ApiResponse<TransactionStatusResponse> { Data = MapToTransactionStatus(response), Status = response.Status, Message = response.Message };
+        }
+
+        private async Task<ApiResponse<TransferRecepientInfo>> GetRecipientCode(ClientConfig config, BankTransferRequest query)
+        {
+            var data = new { bank_code = query.BeneficiaryBankCode, account_number = query.BeneficiaryAccountNumber };
+
+            var transferReceipient = await _apiClient.Post<ApiResponse<TransferRecepientInfo>>
+                (data, config?.GenerateReceipientUrl!, config?.ProviderApiKey!);
+            return transferReceipient;
+        }
+
+        private static TransferResponse MapToTransferResponse(ApiResponse<PaystackTransferResponse> response)
+        {
+            var transferResponse = response?.Data;
+            return new TransferResponse
+            {
+                Amount = transferResponse?.amount,
+                TransactionReference = transferResponse?.reference,
+                Status = transferResponse?.status,
+                CurrencyCode = transferResponse?.currency,
+                ResponseMessage = response!.Message,
+                TransactionDateTime = transferResponse!.createdAt,
             };
         }
     }

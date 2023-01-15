@@ -58,14 +58,4 @@ namespace BankTransfer.Messaging
             
         }
     }
-
-    public class DefaultMessage
-    {
-    }
-
-
-    //public interface IMessenger
-    //{
-    //    public Task Publish(T message);
-    //}
 }

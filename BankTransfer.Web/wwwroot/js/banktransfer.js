@@ -3,7 +3,7 @@
 var connection = new signalR.HubConnectionBuilder().withUrl("/banktransferhub").build();
 
 //Disable send button until connection is established
-document.getElementById("sendButton").disabled = true;
+document.getElementById("makeRequest").disabled = true;
 
 let bankTransferUrl = "https://localhost:7121/api/v1/core-banking/bankTransfer";
 
@@ -15,6 +15,7 @@ let asyncResponse = document.getElementById("asyncResponse");
 
 connection.on("ReceiveMessage", function (valueToSend) {
     console.log("Hello World");
+
     console.log(`Json Parsed::: ${valueToSend}`);
 
     var textAreaContent = document.getElementById("messages");
@@ -27,6 +28,9 @@ connection.on("ReceiveMessage", function (valueToSend) {
 //Get Value for the various fields
 
 function MakeBankTransferRequest(endpoint) {
+
+    console.log("Got to MakeBankTransferRequest");
+
     fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -34,6 +38,7 @@ function MakeBankTransferRequest(endpoint) {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
+       
         body: JSON.stringify({
             Provider: document.getElementById("providerInput").value,
             BeneficiaryBankCode: document.getElementById("beneficiaryBankCodeInput").value,
@@ -47,18 +52,21 @@ function MakeBankTransferRequest(endpoint) {
         })
         .catch(err => {
             console.log(err);
-        })
+    })
 
 }
 
 function handleBankTransfer(e) {
     e.preventDefault();
+    console.log("Got to HandleBankTransfer");
     MakeBankTransferRequest(bankTransferUrl);
 }
 
 connection.start().then(function () {
-    document.getElementById("sendButton").disabled = false;
+    console.log("Entered Here");
+    document.getElementById("makeRequest").disabled = false;
 }).catch(function (err) {
+    console.log(err);
     return console.error(err.toString());
 });
 

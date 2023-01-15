@@ -24,14 +24,14 @@ namespace BankTransfer.Core.Implementation
             _paymentProviderOptions = paymentProviderOptions;
         }
 
-        public async Task<ApiResponse<List<BankInfo>>> GetAllBanks(string? provider)
+        public async Task<List<BankInfo>> GetAllBanks(string? provider)
         {
             var (config, paymentProvider) = GetProviderToUse(provider);
             var response = await paymentProvider.GetBanks(config);
             return response;
         }
 
-        public async Task<ApiResponse<AccountInfo>> ValidateAccount(ValidateAccountNumberQuery query)
+        public async Task<AccountInfo> ValidateAccount(ValidateAccountNumberQuery query)
         {
             ValidateValidationQuery(query);
 
@@ -41,7 +41,7 @@ namespace BankTransfer.Core.Implementation
 
         }
 
-        public async Task<ApiResponse<TransferResponse>> BankTransfer(BankTransferRequest bankTransferRequest)
+        public async Task<object> BankTransfer(BankTransferRequest bankTransferRequest)
         {
             ValidateBankRequest(bankTransferRequest);
             var (config, paymentProvider) = GetProviderToUse(bankTransferRequest.Provider);
@@ -49,7 +49,7 @@ namespace BankTransfer.Core.Implementation
             return response;
         }
 
-        public async Task<ApiResponse<TransactionStatusResponse>> GetTransactionStatus(string transactionReference, string? provider)
+        public async Task<TransactionStatusResponse> GetTransactionStatus(string transactionReference, string? provider)
         {
             if (string.IsNullOrEmpty(transactionReference)) throw new BadRequestException("Transaction Reference must be supplied.");
             var (config, paymentProvider) = GetProviderToUse(provider);

@@ -19,6 +19,9 @@ namespace BankTransfer.Domain.Models
         public string? TransferUrl { get; set; }
 
         public string? ProviderApikey { get; set; }
+        public string? BeneficiaryAccountNumber { get; set; }
+
+        public string? BeneficiaryBankCode { get; set; }
 
         public int MaxRetry { get; set; }
     }
