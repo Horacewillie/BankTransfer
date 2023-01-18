@@ -21,7 +21,7 @@ namespace BankTransfer.Core.Factory
 
         public IProvider GetProvider(ProviderEnum? provider) => provider switch
         {
-            ProviderEnum.Flutterwave => (IProvider)_serviceProvider.GetService(typeof(FlutterwaveProvider)),
+            ProviderEnum!.Flutterwave => (IProvider)_serviceProvider.GetService(typeof(FlutterwaveProvider)),
 
             _ => (IProvider)_serviceProvider.GetService(typeof(PaystackProvider))
         };
